@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🍳 Pantalla Cocina</title>
+<link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600;700&family=Noto+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════
+   SCREEN STYLES
+══════════════════════════════ */
+:root{
+  --bg:#0a0a0a;--card:#181818;--card2:#202020;--border:#2a2a2a;
+  --red:#e63030;--green:#2ecc71;--yellow:#f1c40f;--orange:#e67e22;
+  --text:#f5f5f5;--muted:#666;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+header{background:#111;border-bottom:3px solid var(--red);padding:12px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.hd-left{display:flex;align-items:center;gap:14px;}
+header h1{font-family:'Teko',sans-serif;font-size:2rem;font-weight:700;letter-spacing:3px;}
+#clock{font-family:'Teko',sans-serif;font-size:1.5rem;color:var(--yellow);letter-spacing:2px;}
+.hd-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;}
+#sync-status{font-size:.75rem;padding:3px 9px;border-radius:4px;background:rgba(255,255,255,.07);}
+#pending-badge{font-family:'Teko',sans-serif;font-size:1.2rem;color:var(--orange);}
+.hdr-btn{background:var(--card2);border:1px solid var(--border);color:var(--muted);border-radius:5px;padding:6px 11px;cursor:pointer;font-size:.78rem;transition:all .15s;white-space:nowrap;}
+.hdr-btn:hover{color:var(--text);border-color:#555;}
+.hdr-btn.sound-on{color:var(--green);border-color:var(--green);}
+
+.filter-bar{display:flex;gap:8px;padding:8px 14px;background:#111;border-bottom:1px solid var(--border);}
+.filter-btn{padding:5px 14px;border-radius:4px;border:1px solid var(--border);background:var(--card2);color:var(--muted);cursor:pointer;font-family:'Teko',sans-serif;font-size:.92rem;letter-spacing:1px;transition:all .15s;}
+.filter-btn.active{background:var(--red);border-color:var(--red);color:#fff;}
+
+.tickets-area{padding:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;align-content:start;min-height:calc(100vh - 125px);}
+
+.no-orders{grid-column:1/-1;text-align:center;color:var(--muted);padding:80px 20px;font-size:1rem;line-height:2.5;}
+.no-orders .icon{font-size:3rem;display:block;margin-bottom:8px;}
+
+/* TICKET CARD */
+.ticket{background:var(--card);border:2px solid var(--border);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;animation:popIn .3s cubic-bezier(.34,1.56,.64,1);}
+@keyframes popIn{from{opacity:0;transform:scale(.88) translateY(14px);}to{opacity:1;transform:scale(1) translateY(0);}}
+.ticket.urgent{border-color:var(--red);box-shadow:0 0 0 3px rgba(230,48,48,.2),0 0 20px rgba(230,48,48,.1);}
+.ticket.done{border-color:var(--green);opacity:.45;}
+
+.ticket-head{padding:10px 13px;display:flex;align-items:center;justify-content:space-between;background:#1e1e1e;border-bottom:1px solid var(--border);}
+.t-num{font-family:'Teko',sans-serif;font-size:2rem;line-height:1;letter-spacing:2px;}
+.ticket.urgent .t-num{color:var(--red);}
+.t-meta{text-align:right;}
+.t-hora{font-family:'Teko',sans-serif;font-size:1.05rem;color:var(--yellow);}
+.t-timer{font-size:.7rem;color:var(--muted);margin-top:2px;}
+.t-timer.late{color:var(--red);font-weight:700;}
+
+.ticket-body{flex:1;padding:11px 13px;}
+.t-item{display:flex;gap:9px;padding:6px 0;border-bottom:1px dashed var(--border);align-items:flex-start;}
+.t-item:last-child{border:none;}
+.t-qty{font-family:'Teko',sans-serif;font-size:1.7rem;line-height:1;color:var(--red);min-width:34px;text-align:center;}
+.t-info{flex:1;}
+.t-name{font-size:.88rem;font-weight:600;line-height:1.3;}
+.t-meat{font-size:.74rem;color:var(--orange);margin-top:2px;font-weight:600;}
+.t-notes{margin:8px 0 0;padding:6px 8px;background:rgba(241,196,15,.07);border-left:3px solid var(--yellow);border-radius:0 4px 4px 0;font-size:.76rem;color:var(--yellow);line-height:1.4;}
+
+.ticket-foot{padding:9px 13px;border-top:1px solid var(--border);display:flex;gap:6px;}
+.btn-listo{flex:1;background:var(--green);border:none;color:#fff;border-radius:6px;padding:11px;font-family:'Teko',sans-serif;font-size:1.2rem;letter-spacing:1px;cursor:pointer;transition:opacity .1s;}
+.btn-listo:hover{opacity:.85;}
+.btn-listo.done{background:#1a4a2a;color:var(--green);cursor:default;}
+.btn-print{background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:11px 13px;cursor:pointer;font-size:.9rem;transition:all .1s;}
+.btn-print:hover{background:#3a3a3a;border-color:#555;}
+.btn-del{background:none;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:11px 12px;cursor:pointer;font-size:.85rem;transition:all .1s;}
+.btn-del:hover{color:var(--red);border-color:var(--red);}
+
+/* DING FLASH OVERLAY */
+#ding-flash{position:fixed;inset:0;background:rgba(46,204,113,.15);z-index:999;pointer-events:none;opacity:0;transition:opacity .1s;}
+#ding-flash.flash{opacity:1;}
+
+/* NO FIREBASE BANNER */
+#no-fb-banner{display:none;background:#1a1200;border-bottom:2px solid var(--yellow);padding:10px 16px;font-size:.82rem;color:var(--yellow);text-align:center;line-height:1.6;}
+
+::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+
+/* ══════════════════════════════
+   PRINT STYLES
+   Only shows when printing
+══════════════════════════════ */
+@media print {
+  body * { visibility: hidden; }
+  #print-area, #print-area * { visibility: visible; }
+  #print-area {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    color: #000;
+    background: #fff;
+    padding: 8px;
+  }
+  .pr-store { font-size: 22px; font-weight: bold; text-align: center; margin-bottom: 2px; }
+  .pr-sub { text-align: center; font-size: 11px; margin-bottom: 1px; color: #333; }
+  .pr-divider { border-top: 2px dashed #000; margin: 6px 0; }
+  .pr-num { font-size: 28px; font-weight: bold; text-align: center; letter-spacing: 4px; margin: 4px 0; }
+  .pr-time { text-align: center; font-size: 12px; margin-bottom: 4px; }
+  .pr-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #555; margin-bottom: 2px; }
+  .pr-item { display: flex; gap: 6px; margin: 5px 0; font-size: 14px; font-weight: bold; }
+  .pr-item-qty { min-width: 24px; }
+  .pr-meat { font-size: 13px; padding-left: 30px; font-weight: normal; }
+  .pr-notes-box { border: 2px solid #000; padding: 5px 8px; margin-top: 8px; font-size: 13px; }
+  .pr-notes-title { font-weight: bold; font-size: 12px; text-transform: uppercase; }
+  .pr-footer { text-align: center; margin-top: 10px; font-size: 11px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Screen flash on new order -->
+<div id="ding-flash"></div>
+
+<!-- Hidden print area -->
+<div id="print-area" style="display:none;"></div>
+
+<div id="no-fb-banner">
+  ⚠️ Firebase no está configurado — configúralo siguiendo las instrucciones en cocina-ordenes.html
+</div>
+
+<header>
+  <div class="hd-left">
+    <div>
+      <h1>🌹 LA ROSA — COCINA</h1>
+      <div style="font-size:.7rem;color:rgba(255,255,255,.6);letter-spacing:1px;margin-top:1px;">TIENDA MEXICANA • EATONTON, GA</div>
+    </div>
+    <span id="clock">00:00</span>
+  </div>
+  <div class="hd-right">
+    <span id="sync-status" style="color:var(--muted);">⚪ Sin conexión</span>
+    <span id="pending-badge">0 pendientes</span>
+    <button class="hdr-btn sound-on" id="sound-btn" onclick="toggleSound()">🔔 Sonido ON</button>
+  </div>
+</header>
+
+<div class="filter-bar">
+  <button class="filter-btn active" onclick="setFilter('pending')">⏳ Pendientes</button>
+  <button class="filter-btn" onclick="setFilter('all')">📋 Todas</button>
+  <button class="filter-btn" onclick="setFilter('done')">✓ Completadas</button>
+</div>
+
+<div class="tickets-area" id="tickets-area">
+  <div class="no-orders">
+    <span class="icon">⏳</span>
+    Esperando órdenes...<br>
+    <span style="font-size:.8rem;">Configura Firebase para recibir órdenes del teléfono</span>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════
+var ordenes = {};
+var currentFilter = 'pending';
+var soundOn = true;
+var isFirstLoad = true;
+var marcarListoFn = null;
+var eliminarOrdenFn = null;
+
+// ══════════════════════════════════════════════════
+//  CLOCK
+// ══════════════════════════════════════════════════
+function updateClock() {
+  document.getElementById('clock').textContent =
+    new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
+}
+updateClock();
+setInterval(updateClock, 1000);
+setInterval(renderTickets, 30000); // refresh timers every 30s
+
+// ══════════════════════════════════════════════════
+//  RENDER TICKETS
+// ══════════════════════════════════════════════════
+function renderTickets() {
+  var area = document.getElementById('tickets-area');
+  var entries = Object.entries(ordenes).sort(function(a,b){
+    return a[1].timestamp - b[1].timestamp;
+  });
+
+  if (currentFilter === 'pending') entries = entries.filter(function(e){return !e[1].listo;});
+  if (currentFilter === 'done')    entries = entries.filter(function(e){return  e[1].listo;});
+
+  var pending = Object.values(ordenes).filter(function(o){return !o.listo;}).length;
+  document.getElementById('pending-badge').textContent =
+    pending + ' pendiente' + (pending!==1?'s':'');
+
+  if (!entries.length) {
+    area.innerHTML = '<div class="no-orders"><span class="icon">' +
+      (currentFilter==='done' ? '✅' : '⏳') + '</span>' +
+      (currentFilter==='done'
+        ? 'No hay órdenes completadas'
+        : 'Sin órdenes pendientes 🎉<br><span style="font-size:.8rem;">Todo listo</span>') +
+      '</div>';
+    return;
+  }
+
+  var html = '';
+  entries.forEach(function(entry) {
+    var key = entry[0];
+    var o   = entry[1];
+    var ageMins  = Math.floor((Date.now() - o.timestamp) / 60000);
+    var isUrgent = ageMins >= 10 && !o.listo;
+    var timerTxt = ageMins < 1 ? 'Hace menos de 1 min' : 'Hace ' + ageMins + ' min';
+
+    html +=
+      '<div class="ticket' + (isUrgent?' urgent':'') + (o.listo?' done':'') + '">' +
+
+        '<div class="ticket-head">' +
+          '<span class="t-num">' + o.num + '</span>' +
+          '<div class="t-meta">' +
+            '<div class="t-hora">' + o.hora + '</div>' +
+            '<div class="t-timer' + (isUrgent?' late':'') + '">' +
+              timerTxt + (isUrgent?' ⚠️':'') +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="ticket-body">';
+
+    o.items.forEach(function(item) {
+      html +=
+        '<div class="t-item">' +
+          '<span class="t-qty">' + item.qty + '</span>' +
+          '<div class="t-info">' +
+            '<div class="t-name">' + item.nombre + '</div>' +
+            (item.carne ? '<div class="t-meat">🥩 ' + item.carne + '</div>' : '') +
+          '</div>' +
+        '</div>';
+    });
+
+    if (o.notas) {
+      html += '<div class="t-notes">📝 ' + o.notas + '</div>';
+    }
+
+    html += '</div>' + // end ticket-body
+
+      '<div class="ticket-foot">' +
+        (!o.listo
+          ? '<button class="btn-listo" onclick="marcarListo(\'' + key + '\')">✓ LISTA</button>'
+          : '<button class="btn-listo done" disabled>✓ COMPLETADA</button>'
+        ) +
+        '<button class="btn-print" onclick="imprimirTicket(\'' + key + '\')" title="Imprimir">🖨️</button>' +
+        '<button class="btn-del"   onclick="eliminarOrden(\'' + key + '\')" title="Eliminar">🗑</button>' +
+      '</div>' +
+    '</div>';
+  });
+
+  area.innerHTML = html;
+}
+
+// ══════════════════════════════════════════════════
+//  PRINT TICKET
+// ══════════════════════════════════════════════════
+function imprimirTicket(key) {
+  var o = ordenes[key];
+  if (!o) return;
+
+  var html =
+    '<div class="pr-store">🌹 LA ROSA</div>' +
+    '<div class="pr-sub">Tienda Mexicana</div>' +
+    '<div class="pr-sub">615 N Jefferson Street, Eatonton, GA 31024</div>' +
+    '<div class="pr-sub">📞 706-485-5535</div>' +
+    '<div class="pr-divider"></div>' +
+    '<div class="pr-num">' + o.num + '</div>' +
+    '<div class="pr-time">🕐 ' + o.hora + ' — ' + o.fecha + '</div>' +
+    '<div class="pr-divider"></div>' +
+    '<div class="pr-label">Platillos:</div>';
+
+  o.items.forEach(function(item) {
+    html +=
+      '<div class="pr-item">' +
+        '<span class="pr-item-qty">' + item.qty + 'x</span>' +
+        '<span>' + item.nombre + '</span>' +
+      '</div>';
+    if (item.carne) {
+      html += '<div class="pr-meat">→ Carne: ' + item.carne + '</div>';
+    }
+  });
+
+  if (o.notas) {
+    html +=
+      '<div class="pr-divider"></div>' +
+      '<div class="pr-notes-box">' +
+        '<div class="pr-notes-title">📝 Notas:</div>' +
+        o.notas +
+      '</div>';
+  }
+
+  html +=
+    '<div class="pr-divider"></div>' +
+    '<div class="pr-footer">¡Gracias por su preferencia!</div>' +
+    '<div class="pr-footer">La Rosa Tienda Mexicana • 706-485-5535</div>';
+
+  var printArea = document.getElementById('print-area');
+  printArea.innerHTML = html;
+  printArea.style.display = 'block';
+
+  // Small delay so styles render before print dialog
+  setTimeout(function() {
+    window.print();
+    printArea.style.display = 'none';
+  }, 120);
+}
+
+// ══════════════════════════════════════════════════
+//  ACTIONS
+// ══════════════════════════════════════════════════
+function marcarListo(key) {
+  if (marcarListoFn) {
+    marcarListoFn(key);
+  } else {
+    if (ordenes[key]) { ordenes[key].listo = true; renderTickets(); }
+  }
+}
+
+function eliminarOrden(key) {
+  if (!confirm('¿Eliminar esta orden?')) return;
+  if (eliminarOrdenFn) {
+    eliminarOrdenFn(key);
+  } else {
+    delete ordenes[key]; renderTickets();
+  }
+}
+
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(function(b,i){
+    b.classList.toggle('active', ['pending','all','done'][i] === f);
+  });
+  renderTickets();
+}
+
+// ══════════════════════════════════════════════════
+//  LOUD DING SOUND
+//  Uses Web Audio API to synthesize a real bell tone
+//  Plays 3 loud dings in sequence
+// ══════════════════════════════════════════════════
+var audioCtx = null;
+
+function getAudioCtx() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  // Resume if browser suspended it (required after user interaction on iOS/Android)
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function playDing() {
+  if (!soundOn) return;
+  try {
+    var ctx = getAudioCtx();
+    var now = ctx.currentTime;
+
+    // Play 3 dings, 0.45s apart
+    [0, 0.45, 0.9].forEach(function(offset) {
+      playOneBell(ctx, now + offset);
+    });
+
+    // Screen flash
+    var flash = document.getElementById('ding-flash');
+    flash.classList.add('flash');
+    setTimeout(function(){ flash.classList.remove('flash'); }, 400);
+
+  } catch(e) {
+    console.warn('Audio error:', e);
+  }
+}
+
+function playOneBell(ctx, startTime) {
+  // Bell = fundamental sine + harmonics + fast attack, slow exponential decay
+  var frequencies = [880, 1760, 2637, 3520]; // A5, A6, E7, A7
+  var gains       = [1.0,  0.6,  0.35, 0.2];
+
+  frequencies.forEach(function(freq, i) {
+    var osc  = ctx.createOscillator();
+    var gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, startTime);
+
+    // Slight pitch drop for natural bell character
+    osc.frequency.exponentialRampToValueAtTime(freq * 0.98, startTime + 0.6);
+
+    gain.gain.setValueAtTime(0, startTime);
+    gain.gain.linearRampToValueAtTime(gains[i] * 0.9, startTime + 0.005); // very fast attack
+    gain.gain.exponentialRampToValueAtTime(0.001, startTime + 1.4);        // slow ring-out
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(startTime);
+    osc.stop(startTime + 1.5);
+  });
+}
+
+// Unlock audio on first tap (required by iOS/Android browsers)
+document.addEventListener('touchstart', function() { getAudioCtx(); }, {once:true});
+document.addEventListener('click',      function() { getAudioCtx(); }, {once:true});
+
+// ══════════════════════════════════════════════════
+//  SOUND TOGGLE
+// ══════════════════════════════════════════════════
+function toggleSound() {
+  soundOn = !soundOn;
+  var btn = document.getElementById('sound-btn');
+  btn.textContent = soundOn ? '🔔 Sonido ON' : '🔕 Sonido OFF';
+  btn.className   = 'hdr-btn' + (soundOn ? ' sound-on' : '');
+  if (soundOn) playDing(); // test ding when turning on
+}
+
+// ══════════════════════════════════════════════════
+//  FIREBASE — La Rosa Cocina
+// ══════════════════════════════════════════════════
+var firebaseConfig = {
+  apiKey: "AIzaSyCfo0k_xcyVi8lRWbhCzj_knUAlm90m6-s",
+  authDomain: "la-rosa-cocina.firebaseapp.com",
+  databaseURL: "https://la-rosa-cocina-default-rtdb.firebaseio.com",
+  projectId: "la-rosa-cocina",
+  storageBucket: "la-rosa-cocina.firebasestorage.app",
+  messagingSenderId: "714918559902",
+  appId: "1:714918559902:web:221c2ff89b81fe04ecfb8f"
+};
+
+var s1 = document.createElement('script');
+s1.src = 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js';
+s1.onload = function() {
+  var s2 = document.createElement('script');
+  s2.src = 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js';
+  s2.onload = function() {
+    firebase.initializeApp(firebaseConfig);
+    var db = firebase.database();
+    var ordersRef = db.ref('ordenes');
+
+    document.getElementById('no-fb-banner').style.display = 'none';
+    document.getElementById('sync-status').textContent = '🟢 En línea';
+    document.getElementById('sync-status').style.color = '#2ecc71';
+
+    marcarListoFn = function(key) {
+      ordersRef.child(key).update({listo: true});
+    };
+    eliminarOrdenFn = function(key) {
+      ordersRef.child(key).remove();
+    };
+
+    ordersRef.on('value', function(snap) {
+      var data = snap.val() || {};
+      var prevKeys = Object.keys(ordenes);
+      ordenes = data;
+      var newKeys = Object.keys(data);
+      var added = newKeys.filter(function(k){ return prevKeys.indexOf(k) === -1; });
+      if (!isFirstLoad && added.length > 0) playDing();
+      isFirstLoad = false;
+      renderTickets();
+    });
+  };
+  document.head.appendChild(s2);
+};
+document.head.appendChild(s1);
+</script>
+</body>
+</html>
