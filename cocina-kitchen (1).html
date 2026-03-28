@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🍳 La Rosa — Cocina</title>
+<link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600;700&family=Noto+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0a0a;--card:#181818;--card2:#202020;--border:#2a2a2a;
+  --red:#e63030;--green:#2ecc71;--yellow:#f1c40f;--orange:#e67e22;
+  --text:#f5f5f5;--muted:#666;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+header{background:#111;border-bottom:3px solid var(--red);padding:12px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.hd-left{display:flex;align-items:center;gap:14px;}
+.hd-title{}
+header h1{font-family:'Teko',sans-serif;font-size:2rem;font-weight:700;letter-spacing:3px;}
+.hd-sub{font-size:.65rem;color:rgba(255,255,255,.5);letter-spacing:1px;margin-top:1px;}
+#clock{font-family:'Teko',sans-serif;font-size:1.5rem;color:var(--yellow);letter-spacing:2px;}
+.hd-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;}
+#sync-status{font-size:.75rem;padding:3px 9px;border-radius:4px;background:rgba(255,255,255,.07);}
+#pending-badge{font-family:'Teko',sans-serif;font-size:1.2rem;color:var(--orange);}
+.hdr-btn{background:var(--card2);border:1px solid var(--border);color:var(--muted);border-radius:5px;padding:6px 11px;cursor:pointer;font-size:.78rem;white-space:nowrap;}
+.hdr-btn.sound-on{color:var(--green);border-color:var(--green);}
+
+.filter-bar{display:flex;gap:8px;padding:8px 14px;background:#111;border-bottom:1px solid var(--border);}
+.filter-btn{padding:5px 14px;border-radius:4px;border:1px solid var(--border);background:var(--card2);color:var(--muted);cursor:pointer;font-family:'Teko',sans-serif;font-size:.92rem;letter-spacing:1px;transition:all .15s;}
+.filter-btn.active{background:var(--red);border-color:var(--red);color:#fff;}
+
+.tickets-area{padding:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;align-content:start;min-height:calc(100vh - 125px);}
+
+.no-orders{grid-column:1/-1;text-align:center;color:var(--muted);padding:80px 20px;font-size:1rem;line-height:2.5;}
+.no-orders .icon{font-size:3rem;display:block;margin-bottom:8px;}
+
+/* TICKET */
+.ticket{background:var(--card);border:2px solid var(--border);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;animation:popIn .3s cubic-bezier(.34,1.56,.64,1);}
+@keyframes popIn{from{opacity:0;transform:scale(.88) translateY(14px);}to{opacity:1;transform:scale(1) translateY(0);}}
+.ticket.urgent{border-color:var(--red);box-shadow:0 0 0 3px rgba(230,48,48,.2);}
+.ticket.done{border-color:var(--green);opacity:.45;}
+.ticket.llevar-ticket{border-top:4px solid var(--green);}
+
+.ticket-head{padding:10px 13px;display:flex;align-items:center;justify-content:space-between;background:#1e1e1e;border-bottom:1px solid var(--border);}
+.t-num{font-family:'Teko',sans-serif;font-size:2rem;line-height:1;letter-spacing:2px;}
+.ticket.urgent .t-num{color:var(--red);}
+.t-meta{text-align:right;}
+.t-hora{font-family:'Teko',sans-serif;font-size:1.05rem;color:var(--yellow);}
+.t-timer{font-size:.7rem;color:var(--muted);margin-top:2px;}
+.t-timer.late{color:var(--red);font-weight:700;}
+
+/* DINE BADGE */
+.t-dine{display:inline-block;font-size:.75rem;font-weight:700;padding:3px 10px;border-radius:4px;margin:8px 13px 2px;}
+.t-dine.aqui{background:#1a3a5c;color:#5dade2;}
+.t-dine.llevar{background:#1a4a1a;color:var(--green);font-size:.85rem;}
+
+.ticket-body{flex:1;padding:8px 13px 12px;}
+
+/* Regular item */
+.t-item{display:flex;gap:9px;padding:6px 0;border-bottom:1px dashed var(--border);align-items:flex-start;}
+.t-item:last-child{border:none;}
+.t-qty{font-family:'Teko',sans-serif;font-size:1.7rem;line-height:1;color:var(--red);min-width:34px;text-align:center;}
+.t-info{flex:1;}
+.t-name{font-size:.88rem;font-weight:600;line-height:1.3;}
+.t-meat{font-size:.74rem;color:var(--orange);margin-top:2px;font-weight:500;}
+
+/* Combo plate */
+.t-combo{border:1px solid #2d5a2d;border-radius:6px;background:#0e1e0e;padding:6px 8px;margin:6px 0;}
+.t-combo-label{font-family:'Teko',sans-serif;font-size:1rem;color:var(--green);letter-spacing:1px;margin-bottom:4px;}
+.t-combo-item{display:flex;gap:8px;padding:4px 0 4px 8px;border-left:2px solid #2d5a2d;margin-left:2px;border-bottom:1px dashed #1e3a1e;align-items:flex-start;font-size:.84rem;}
+.t-combo-item:last-child{border-bottom:none;}
+.t-combo-meat{font-size:.72rem;color:var(--orange);margin-top:1px;}
+
+.t-notes{margin:8px 0 0;padding:6px 8px;background:rgba(241,196,15,.07);border-left:3px solid var(--yellow);border-radius:0 4px 4px 0;font-size:.76rem;color:var(--yellow);line-height:1.4;}
+
+.ticket-foot{padding:9px 13px;border-top:1px solid var(--border);display:flex;gap:6px;}
+.btn-listo{flex:1;background:var(--green);border:none;color:#fff;border-radius:6px;padding:11px;font-family:'Teko',sans-serif;font-size:1.2rem;letter-spacing:1px;cursor:pointer;}
+.btn-listo:hover{opacity:.85;}
+.btn-listo.done{background:#1a4a2a;color:var(--green);cursor:default;}
+.btn-print{background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:11px 12px;cursor:pointer;font-size:.88rem;}
+.btn-del{background:none;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:11px 12px;cursor:pointer;font-size:.85rem;}
+.btn-del:hover{color:var(--red);border-color:var(--red);}
+
+/* FLASH */
+#ding-flash{position:fixed;inset:0;background:rgba(46,204,113,.15);z-index:999;pointer-events:none;opacity:0;transition:opacity .1s;}
+#ding-flash.flash{opacity:1;}
+
+/* PRINT */
+@media print {
+  body * { visibility: hidden; }
+  #print-area, #print-area * { visibility: visible; }
+  #print-area {
+    position: fixed; top: 0; left: 0; width: 100%;
+    font-family: 'Courier New', monospace; font-size: 13px;
+    color: #000; background: #fff; padding: 8px;
+  }
+  .pr-store{font-size:20px;font-weight:bold;text-align:center;margin-bottom:2px;}
+  .pr-sub{text-align:center;font-size:11px;margin-bottom:1px;color:#333;}
+  .pr-divider{border-top:2px dashed #000;margin:6px 0;}
+  .pr-num{font-size:30px;font-weight:bold;text-align:center;letter-spacing:4px;margin:4px 0;}
+  .pr-dine{font-size:15px;font-weight:bold;text-align:center;margin:3px 0;padding:3px;border:2px solid #000;}
+  .pr-time{text-align:center;font-size:11px;margin-bottom:4px;}
+  .pr-label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#555;margin-bottom:2px;}
+  .pr-item{display:flex;gap:6px;margin:5px 0;font-size:13px;font-weight:bold;}
+  .pr-item-qty{min-width:24px;}
+  .pr-meat{font-size:12px;padding-left:30px;font-weight:normal;}
+  .pr-combo-label{font-size:13px;font-weight:bold;margin:6px 0 2px;border-left:3px solid #000;padding-left:6px;}
+  .pr-combo-item{font-size:12px;padding-left:20px;margin:2px 0;}
+  .pr-notes-box{border:2px solid #000;padding:5px 8px;margin-top:8px;font-size:12px;}
+  .pr-notes-title{font-weight:bold;font-size:11px;text-transform:uppercase;}
+  .pr-footer{text-align:center;margin-top:10px;font-size:10px;}
+}
+
+::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+</style>
+</head>
+<body>
+
+<div id="ding-flash"></div>
+<div id="print-area" style="display:none;"></div>
+
+<header>
+  <div class="hd-left">
+    <div class="hd-title">
+      <h1>🌹 LA ROSA — COCINA</h1>
+      <div class="hd-sub">TIENDA MEXICANA • EATONTON, GA</div>
+    </div>
+    <span id="clock">00:00</span>
+  </div>
+  <div class="hd-right">
+    <span id="sync-status" style="color:var(--muted);">⚪ Sin conexión</span>
+    <span id="pending-badge">0 pendientes</span>
+    <button class="hdr-btn sound-on" id="sound-btn" onclick="toggleSound()">🔔 Sonido ON</button>
+  </div>
+</header>
+
+<div class="filter-bar">
+  <button class="filter-btn active" onclick="setFilter('pending')">⏳ Pendientes</button>
+  <button class="filter-btn" onclick="setFilter('all')">📋 Todas</button>
+  <button class="filter-btn" onclick="setFilter('done')">✓ Completadas</button>
+</div>
+
+<div class="tickets-area" id="tickets-area">
+  <div class="no-orders">
+    <span class="icon">⏳</span>
+    Esperando órdenes...
+  </div>
+</div>
+
+<script>
+var ordenes = {};
+var currentFilter = 'pending';
+var soundOn = true;
+var isFirstLoad = true;
+var marcarListoFn = null;
+var eliminarOrdenFn = null;
+
+// CLOCK
+function updateClock() {
+  document.getElementById('clock').textContent =
+    new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
+}
+updateClock(); setInterval(updateClock,1000); setInterval(renderTickets,30000);
+
+// ══════════════════════════════════════════════════
+//  RENDER TICKETS
+// ══════════════════════════════════════════════════
+function renderTickets() {
+  var area = document.getElementById('tickets-area');
+  var entries = Object.entries(ordenes).sort(function(a,b){return a[1].timestamp-b[1].timestamp;});
+  if (currentFilter==='pending') entries=entries.filter(function(e){return !e[1].listo;});
+  if (currentFilter==='done')    entries=entries.filter(function(e){return  e[1].listo;});
+
+  var pending = Object.values(ordenes).filter(function(o){return !o.listo;}).length;
+  document.getElementById('pending-badge').textContent = pending+' pendiente'+(pending!==1?'s':'');
+
+  if (!entries.length) {
+    area.innerHTML='<div class="no-orders"><span class="icon">'+(currentFilter==='done'?'✅':'⏳')+'</span>'+
+      (currentFilter==='done'?'No hay órdenes completadas':'Sin órdenes pendientes 🎉')+'</div>';
+    return;
+  }
+
+  var html='';
+  entries.forEach(function(entry) {
+    var key=entry[0]; var o=entry[1];
+    var ageMins=Math.floor((Date.now()-o.timestamp)/60000);
+    var isUrgent=ageMins>=10&&!o.listo;
+    var timerTxt=ageMins<1?'Hace menos de 1 min':'Hace '+ageMins+' min';
+    var isLlevar = o.dine==='llevar';
+
+    html+='<div class="ticket'+(isUrgent?' urgent':'')+(o.listo?' done':'')+(isLlevar?' llevar-ticket':'')+'">' +
+      '<div class="ticket-head">' +
+        '<span class="t-num">'+o.num+'</span>' +
+        '<div class="t-meta">' +
+          '<div class="t-hora">'+o.hora+'</div>' +
+          '<div class="t-timer'+(isUrgent?' late':'')+'">'+timerTxt+(isUrgent?' ⚠️':'')+'</div>' +
+        '</div>' +
+      '</div>' +
+      // DINE BADGE
+      '<div class="t-dine '+(isLlevar?'llevar':'aqui')+'">'+(isLlevar?'🥡 PARA LLEVAR':'🍽 PARA AQUÍ')+'</div>' +
+      '<div class="ticket-body">';
+
+    // Render items
+    o.items.forEach(function(item) {
+      if (item.type==='combo') {
+        html+='<div class="t-combo"><div class="t-combo-label">🍽 PLATO COMBINADO</div>';
+        item.items.forEach(function(ci) {
+          var q = ci.qty||1;
+          html+='<div class="t-combo-item"><div>' +
+            '<div style="font-weight:600;">'+(q>1?q+'× ':'')+ci.nombre+'</div>'+
+            (ci.carne?'<div class="t-combo-meat">🥩 '+ci.carne+'</div>':'') +
+          '</div></div>';
+        });
+        html+='</div>';
+      } else {
+        html+='<div class="t-item">' +
+          '<span class="t-qty">'+item.qty+'</span>' +
+          '<div class="t-info"><div class="t-name">'+item.nombre+'</div>'+
+          (item.carne?'<div class="t-meat">🥩 '+item.carne+'</div>':'')+
+          '</div></div>';
+      }
+    });
+
+    if (o.notas) html+='<div class="t-notes">📝 '+o.notas+'</div>';
+
+    html+='</div>' + // end ticket-body
+      '<div class="ticket-foot">' +
+        (!o.listo
+          ?'<button class="btn-listo" onclick="marcarListo(\''+key+'\')">✓ LISTA</button>'
+          :'<button class="btn-listo done" disabled>✓ COMPLETADA</button>') +
+        '<button class="btn-print" onclick="imprimirTicket(\''+key+'\')" title="Imprimir">🖨️</button>' +
+        '<button class="btn-del" onclick="eliminarOrden(\''+key+'\')" title="Eliminar">🗑</button>' +
+      '</div>' +
+    '</div>';
+  });
+  area.innerHTML=html;
+}
+
+// ══════════════════════════════════════════════════
+//  PRINT — opens clean receipt in new window
+// ══════════════════════════════════════════════════
+function imprimirTicket(key) {
+  var o=ordenes[key]; if(!o) return;
+  var isLlevar=o.dine==='llevar';
+
+  var body=
+    '<div class="pr-store">🌹 LA ROSA</div>' +
+    '<div class="pr-sub">Tienda Mexicana</div>' +
+    '<div class="pr-sub">615 N Jefferson Street, Eatonton, GA 31024</div>' +
+    '<div class="pr-sub">Tel: 706-485-5535</div>' +
+    '<div class="pr-divider"></div>' +
+    '<div class="pr-num">'+o.num+'</div>' +
+    '<div class="pr-dine '+(isLlevar?'llevar':'aqui')+'">'+(isLlevar?'🥡 PARA LLEVAR':'🍽 PARA AQUÍ')+'</div>' +
+    '<div class="pr-time">'+o.hora+' &nbsp;|&nbsp; '+o.fecha+'</div>' +
+    '<div class="pr-divider"></div>';
+
+  o.items.forEach(function(item) {
+    if (item.type==='combo') {
+      body+='<div class="pr-combo-label">🍽 PLATO COMBINADO:</div>';
+      item.items.forEach(function(ci) {
+        var q = ci.qty||1;
+        body+='<div class="pr-combo-item">&#8226; '+(q>1?q+'x ':'')+ci.nombre+(ci.carne?' — Carne: '+ci.carne:'')+'</div>';
+      });
+      body+='<div style="margin-bottom:4px;"></div>';
+    } else {
+      body+='<div class="pr-item"><span class="pr-qty">'+item.qty+'x</span><span class="pr-name">'+item.nombre+'</span></div>';
+      if (item.carne) body+='<div class="pr-meat">&#8594; Carne: '+item.carne+'</div>';
+    }
+  });
+
+  if (o.notas) {
+    body+='<div class="pr-divider"></div>' +
+      '<div class="pr-notes-box">' +
+        '<div class="pr-notes-title">NOTAS ESPECIALES:</div>' +
+        '<div class="pr-notes-text">'+o.notas+'</div>' +
+      '</div>';
+  }
+
+  body+='<div class="pr-divider"></div>' +
+    '<div class="pr-footer">Gracias por su preferencia</div>' +
+    '<div class="pr-footer">La Rosa Tienda Mexicana &bull; 706-485-5535</div>';
+
+  var win = window.open('','_blank','width=400,height=600');
+  win.document.write(
+    '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
+    '<title>Ticket '+o.num+'</title>' +
+    '<style>' +
+      'body{font-family:"Courier New",monospace;font-size:14px;margin:0;padding:10px;background:#fff;color:#000;max-width:380px;}' +
+      '.pr-store{font-size:22px;font-weight:bold;text-align:center;margin-bottom:2px;}' +
+      '.pr-sub{text-align:center;font-size:11px;color:#444;margin:1px 0;}' +
+      '.pr-divider{border-top:2px dashed #000;margin:7px 0;}' +
+      '.pr-num{font-size:32px;font-weight:bold;text-align:center;letter-spacing:5px;margin:5px 0;}' +
+      '.pr-dine{text-align:center;font-size:16px;font-weight:bold;padding:4px 10px;margin:4px auto;display:table;border:2px solid #000;}' +
+      '.pr-dine.llevar{border:3px solid #000;background:#f0f0f0;}' +
+      '.pr-time{text-align:center;font-size:12px;margin:3px 0 5px;}' +
+      '.pr-item{display:flex;gap:8px;margin:5px 0;font-size:14px;font-weight:bold;align-items:baseline;}' +
+      '.pr-qty{min-width:28px;font-size:16px;}' +
+      '.pr-name{flex:1;}' +
+      '.pr-meat{font-size:12px;padding-left:36px;margin:-2px 0 4px;font-style:italic;}' +
+      '.pr-combo-label{font-size:13px;font-weight:bold;margin:7px 0 3px;padding-left:4px;border-left:4px solid #000;}' +
+      '.pr-combo-item{font-size:12px;padding-left:16px;margin:2px 0;}' +
+      '.pr-notes-box{border:2px solid #000;padding:6px 8px;margin-top:6px;}' +
+      '.pr-notes-title{font-weight:bold;font-size:11px;text-transform:uppercase;margin-bottom:3px;}' +
+      '.pr-notes-text{font-size:13px;}' +
+      '.pr-footer{text-align:center;font-size:10px;color:#555;margin-top:3px;}' +
+      '@media print{body{max-width:100%;}}' +
+    '</style></head><body>' +
+    body +
+    '<br><br>' +
+    '<div style="text-align:center;margin-top:10px;">' +
+      '<button onclick="window.print()" style="font-size:16px;padding:10px 30px;background:#c0392b;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:bold;">🖨️ IMPRIMIR</button>' +
+      '&nbsp;&nbsp;' +
+      '<button onclick="window.close()" style="font-size:14px;padding:10px 20px;background:#555;color:#fff;border:none;border-radius:6px;cursor:pointer;">✕ Cerrar</button>' +
+    '</div>' +
+    '</body></html>'
+  );
+  win.document.close();
+}
+
+// ══════════════════════════════════════════════════
+//  ACTIONS
+// ══════════════════════════════════════════════════
+function marcarListo(key) {
+  if (marcarListoFn) marcarListoFn(key);
+  else { if(ordenes[key]){ordenes[key].listo=true;renderTickets();} }
+}
+
+function eliminarOrden(key) {
+  if (!confirm('¿Eliminar esta orden?')) return;
+  if (eliminarOrdenFn) {
+    eliminarOrdenFn(key); // removes from Firebase — phone sees it too
+  } else {
+    delete ordenes[key]; renderTickets();
+  }
+}
+
+function setFilter(f) {
+  currentFilter=f;
+  document.querySelectorAll('.filter-btn').forEach(function(b,i){
+    b.classList.toggle('active',['pending','all','done'][i]===f);
+  });
+  renderTickets();
+}
+
+// ══════════════════════════════════════════════════
+//  LOUD BELL SOUND
+// ══════════════════════════════════════════════════
+var audioCtx=null;
+function getAudioCtx(){
+  if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==='suspended') audioCtx.resume();
+  return audioCtx;
+}
+function playDing(){
+  if(!soundOn) return;
+  try{
+    var ctx=getAudioCtx(); var now=ctx.currentTime;
+    [0,0.45,0.9].forEach(function(offset){playOneBell(ctx,now+offset);});
+    var flash=document.getElementById('ding-flash');
+    flash.classList.add('flash'); setTimeout(function(){flash.classList.remove('flash');},400);
+  }catch(e){}
+}
+function playOneBell(ctx,startTime){
+  [880,1760,2637,3520].forEach(function(freq,i){
+    var gains=[1.0,0.6,0.35,0.2];
+    var osc=ctx.createOscillator(); var gain=ctx.createGain();
+    osc.type='sine'; osc.frequency.setValueAtTime(freq,startTime);
+    osc.frequency.exponentialRampToValueAtTime(freq*0.98,startTime+0.6);
+    gain.gain.setValueAtTime(0,startTime);
+    gain.gain.linearRampToValueAtTime(gains[i]*0.9,startTime+0.005);
+    gain.gain.exponentialRampToValueAtTime(0.001,startTime+1.4);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(startTime); osc.stop(startTime+1.5);
+  });
+}
+document.addEventListener('touchstart',function(){getAudioCtx();},{once:true});
+document.addEventListener('click',function(){getAudioCtx();},{once:true});
+
+function toggleSound(){
+  soundOn=!soundOn;
+  var btn=document.getElementById('sound-btn');
+  btn.textContent=soundOn?'🔔 Sonido ON':'🔕 Sonido OFF';
+  btn.className='hdr-btn'+(soundOn?' sound-on':'');
+  if(soundOn) playDing();
+}
+
+// ══════════════════════════════════════════════════
+//  FIREBASE — La Rosa Cocina
+// ══════════════════════════════════════════════════
+var firebaseConfig = {
+  apiKey: "AIzaSyCfo0k_xcyVi8lRWbhCzj_knUAlm90m6-s",
+  authDomain: "la-rosa-cocina.firebaseapp.com",
+  databaseURL: "https://la-rosa-cocina-default-rtdb.firebaseio.com",
+  projectId: "la-rosa-cocina",
+  storageBucket: "la-rosa-cocina.firebasestorage.app",
+  messagingSenderId: "714918559902",
+  appId: "1:714918559902:web:221c2ff89b81fe04ecfb8f"
+};
+
+var s1=document.createElement('script');
+s1.src='https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js';
+s1.onload=function(){
+  var s2=document.createElement('script');
+  s2.src='https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js';
+  s2.onload=function(){
+    firebase.initializeApp(firebaseConfig);
+    var db=firebase.database();
+    var ordersRef=db.ref('ordenes');
+
+    document.getElementById('sync-status').textContent='🟢 En línea';
+    document.getElementById('sync-status').style.color='#2ecc71';
+
+    marcarListoFn=function(key){ ordersRef.child(key).update({listo:true}); };
+    // Delete removes from Firebase so the phone also sees it gone
+    eliminarOrdenFn=function(key){ ordersRef.child(key).remove(); };
+
+    ordersRef.on('value',function(snap){
+      var data=snap.val()||{};
+      var prevKeys=Object.keys(ordenes);
+      ordenes=data;
+      var newKeys=Object.keys(data);
+      var added=newKeys.filter(function(k){return prevKeys.indexOf(k)===-1;});
+      if(!isFirstLoad&&added.length>0) playDing();
+      isFirstLoad=false;
+      renderTickets();
+    });
+  };
+  document.head.appendChild(s2);
+};
+document.head.appendChild(s1);
+</script>
+</body>
+</html>
