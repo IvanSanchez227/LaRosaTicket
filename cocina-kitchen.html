@@ -207,7 +207,7 @@ function renderTickets() {
           if (!ci) return;
           var q = parseInt(ci.qty)>0 ? parseInt(ci.qty) : 1;
           html += '<div class="t-combo-item"><div>' +
-            '<div style="font-weight:600;">'+(q>1?q+'× ':'')+ci.nombre+'</div>' +
+            '<div style="font-weight:600;">'+q+'× '+ci.nombre+'</div>' +
             (ci.carne?'<div class="t-combo-meat">🥩 '+ci.carne+'</div>':'') +
           '</div></div>';
         });
@@ -271,8 +271,8 @@ function imprimirTicket(key) {
       body += '<div class="pr-combo-label">🍽 PLATO COMBINADO:</div>';
       (subItems||[]).forEach(function(ci) {
         if (!ci) return;
-        var q = ci.qty||1;
-        body += '<div class="pr-combo-item">• '+(q>1?q+'x ':'')+ci.nombre+(ci.carne?' — '+ci.carne:'')+'</div>';
+        var q = parseInt(ci.qty)>0 ? parseInt(ci.qty) : 1;
+        body += '<div class="pr-combo-item">• '+q+'x '+ci.nombre+(ci.carne?' — '+ci.carne:'')+'</div>';
       });
       if (item.nota) body += '<div class="pr-meat">📝 '+item.nota+'</div>';
       body += '<div style="margin-bottom:4px;"></div>';

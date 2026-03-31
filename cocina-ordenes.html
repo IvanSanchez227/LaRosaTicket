@@ -502,10 +502,12 @@ function enviarOrden() {
       if (err) setSyncStatus('⚠️ Error','#e74c3c');
       else { orden.fbKey = key; setSyncStatus('🟢 Enviado','#2ecc71'); }
     });
+  } else {
+    // No Firebase — add locally only
+    sentOrders.unshift(JSON.parse(JSON.stringify(orden)));
+    if (sentOrders.length > 100) sentOrders = sentOrders.slice(0,100);
+    actualizarBadge(); renderSent();
   }
-  // Keep sentOrders max 100 to prevent memory growth
-  sentOrders.unshift(JSON.parse(JSON.stringify(orden)));
-  if (sentOrders.length > 100) sentOrders = sentOrders.slice(0, 100);
   numOrden++;
   var n = '#'+String(numOrden).padStart(3,'0');
   document.getElementById('num-display').textContent = 'ORDEN '+n;
@@ -658,27 +660,22 @@ s1.onload = function() {
 
     fbDelete = function(key) { ordersRef.child(key).remove(); };
 
-    // Listen — sync listo status and rebuild sent list from FB
+    // Listen — single source of truth: Firebase drives sentOrders entirely
     ordersRef.on('value', function(snap) {
       var data = snap.val() || {};
-      // Update listo status for existing sent orders
-      sentOrders.forEach(function(o) {
-        if (o.fbKey && data[o.fbKey]) o.listo = data[o.fbKey].listo || false;
-        if (o.fbKey && !data[o.fbKey] && !o.listo) o.listo = true; // deleted = done
-      });
-      // Add any FB orders not in local list (e.g. after refresh)
+
+      // Rebuild sentOrders from Firebase — this is the ONLY place orders are added
+      var fbList = [];
       Object.entries(data).forEach(function(e) {
-        var fbKey = e[0]; var fbO = e[1];
-        var exists = sentOrders.some(function(o){ return o.fbKey === fbKey; });
-        if (!exists) {
-          var merged = JSON.parse(JSON.stringify(fbO));
-          merged.fbKey = fbKey;
-          sentOrders.push(merged);
-        }
+        var merged = JSON.parse(JSON.stringify(e[1]));
+        merged.fbKey = e[0];
+        fbList.push(merged);
       });
-      // Sort by timestamp, keep max 100
-      sentOrders.sort(function(a,b){ return (b.timestamp||0)-(a.timestamp||0); });
-      if (sentOrders.length > 100) sentOrders = sentOrders.slice(0,100);
+      // Sort newest first, keep max 100
+      fbList.sort(function(a,b){ return (b.timestamp||0)-(a.timestamp||0); });
+      if (fbList.length > 100) fbList = fbList.slice(0,100);
+      sentOrders = fbList;
+
       actualizarBadge(); renderSent();
     });
 
